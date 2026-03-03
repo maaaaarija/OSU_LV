@@ -1,1 +1,157 @@
+'''
+Napišite program koji od korisnika zahtijeva unos radnih sati te koliko je placen 
+po radnom satu. Koristite ugradenu Python metodu  input(). Nakon toga izracunajte koliko 
+je korisnik zaradio i ispišite na ekran. Na kraju prepravite rješenje na nacin da ukupni iznos 
+izracunavate u zasebnoj funkciji naziva  total_euro.
+'''
+
+radniSati = int(input("Unesi radne sate: "))
+euroPoSatu = float(input("Unesi satnicu: "))
+
+def total_euro() :
+    return radniSati*euroPoSatu
+
+zarada = total_euro()
+print(f"Ukupno si zaradila {zarada} eura.")
+
+
+'''
+Napišite program koji od korisnika zahtijeva upis jednog broja koji predstavlja
+nekakvu ocjenu i nalazi se izmedu 0.0 i 1.0. Ispišite kojoj kategoriji pripada ocjena na temelju 
+sljedecih uvjeta: 
+>= 0.9 A
+>= 0.8 B
+>= 0.7 C
+>= 0.6 D
+< 0.6 F
+Ako korisnik nije utipkao broj, ispišite na ekran poruku o grešci (koristite try i except naredbe).
+Takoder, ako je broj izvan intervala [0.0 i 1.0] potrebno je ispisati odgovarajucu poruku.
+'''
+
+try:
+
+    x = float(input("Unesite neki brojm koji je izmedu 0.0 i 1.0: "))
+    
+    if x < 0.0 or x > 1.0:
+        print("Broj nije u ispravnom intervalu.")
+    elif x >= 0.9:
+        print("A")
+    elif x >= 0.8:
+        print("B")
+    elif x >= 0.7:
+        print("C")
+    elif x >= 0.6:
+        print("D")
+    else:
+        print("F")
+
+except ValueError:
+    print("Niste upisali broj.")
+
+
+'''
+Napišite program koji od korisnika zahtijeva unos brojeva u beskonacnoj petlji 
+sve dok korisnik ne upiše „Done“ (bez navodnika). Pri tome brojeve spremajte u listu. Nakon toga
+potrebno je ispisati koliko brojeva je korisnik unio, njihovu srednju, minimalnu i maksimalnu
+vrijednost. Sortirajte listu i ispišite je na ekran. Dodatno: osigurajte program od pogrešnog unosa
+(npr. slovo umjesto brojke) na nacin da program zanemari taj unos i ispiše odgovarajucu poruku.
+'''
+
+brojevi = []
+
+while True:
+    x = input("Uneste neki broj za nastavak ili Done za kraj: ")
+    if x == 'Done' : 
+        break
+    try:
+        broj = float(x)
+        brojevi.append(broj)
+    except ValueError:
+        print("Niste upisali broj.")
+
+ukupnoBrojeva = len(brojevi)
+midVrijednost = sum(brojevi) / len(brojevi)
+minVrijednost = min(brojevi)
+maxVrijednost = max(brojevi)
+
+
+brojevi.sort()
+
+print(f"koliko je brojeva korisnik unio: {ukupnoBrojeva}")
+print(f"srednja vrijednost: {midVrijednost}")
+print(f"minimalna vrijednost: {minVrijednost}")
+print(f"maksimalna vrijednost: {maxVrijednost}")
+print(f"{brojevi}")
+
+
+
+
+
+'''
+Napišite Python skriptu koja ce ucitati tekstualnu datoteku naziva song.txt.
+Potrebno je napraviti rjecnik koji kao kljuceve koristi sve razlicite rijeci koje se pojavljuju u 
+datoteci, dok su vrijednosti jednake broju puta koliko se svaka rijec (kljuc) pojavljuje u datoteci. 
+Koliko je rijeci koje se pojavljuju samo jednom u datoteci? Ispišite ih.
+'''
+
+import string
+
+fhand = open('Song.txt')
+sadrzaj = fhand.read()
+rijeci = sadrzaj.split()
+
+rjecnik = {}
+
+for r in rijeci:
+    rjecnik[r] = rjecnik.get(r, 0) + 1
+
+jedinstveneRijeci = []
+
+for kljuc in rjecnik:
+    if rjecnik[kljuc] == 1:
+        jedinstveneRijeci.append(kljuc)
+
+brojJedinstvenihRijeci = len(jedinstveneRijeci)
+print(f"Broj jedinstvenih rijeci: {brojJedinstvenihRijeci}")
+print(f"{jedinstveneRijeci}")
+
+fhand.close()
+
+
+
+
+'''
+Napišite Python skriptu koja ce ucitati tekstualnu datoteku naziva SMSSpamCollection.txt
+[1]. Ova datoteka sadrži 5574 SMS poruka pri cemu su neke oznacene kao spam, a neke kao ham.
+a) Izracunajte koliki je prosjecan broj rijeci u SMS porukama koje su tipa ham, a koliko je 
+prosjecan broj rijeci u porukama koje su tipa spam. 
+b) Koliko SMS poruka koje su tipa spam završava usklicnikom ?
+'''
+
+counterHam=0
+counterHamWord=0
+counterSpam=0
+counterSpamWord=0
+counterSpam2 = 0
+fhand=open("SMSSpamCollection1.txt")
+
+for line in fhand:
+    line = line.strip()
+    if line.startswith("ham"):
+        counterHam += 1
+        counterHamWord += len(line.split()) - 1 
+    elif line.startswith("spam"):
+        counterSpam += 1
+        counterSpamWord += len(line.split()) - 1  
+        if line.endswith("!"):
+            counterSpam2 += 1
+
+fhand.close()
+
+print("Prosjek rijeci u ham porukama:", counterHamWord / counterHam)
+print("Prosjecan broj rijeci u spam porukama:", counterSpamWord / counterSpam)
+print("Broj spam poruka sa usklicnikom:", counterSpam2)
+
+
+
 
