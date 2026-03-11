@@ -1,0 +1,132 @@
+'''
+Pomocu funkcija numpy.array i matplotlib.pyplot pokušajte nacrtati sliku2.3 u okviru skripte zadatak_1.py. 
+Igrajte se sa slikom, promijenite boju linija, debljinu linije i sl.
+'''
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.array([1, 2, 3, 3, 1], float)
+y = np.array([1, 2, 2, 1, 1], float)
+
+plt.plot(x, y, 'r', linewidth = 1, marker = '*', markersize = 5)
+plt.axis([0.0, 4.0, 0.0, 4.0])
+plt.xlabel('x os')
+plt.ylabel('y os')
+plt.title('Primjer')
+plt.show()
+
+
+
+
+'''
+Datoteka data.csv sadrži mjerenja visine i mase provedena na muškarcima i ženama. 
+Skripta zadatak_2.py ucitava dane podatke u obliku numpy polja data pri cemu je u 
+prvom stupcu polja oznaka spola (1 muško, 0 žensko), drugi stupac polja je visina u cm, 
+a treci stupac polja je masa u kg.
+a) Na temelju velicine numpy polja data, na koliko osoba su izvršena mjerenja? 
+b) Prikažite odnos visine i mase osobe pomocu naredbe ´ matplotlib.pyplot.scatter.
+c) Ponovite prethodni zadatak, ali prikažite mjerenja za svaku pedesetu osobu na slici.
+d) Izracunajte i ispišite u terminal minimalnu, maksimalnu i srednju vrijednost visine u ovom podatkovnom skupu.
+e) Ponovite zadatak pod d), ali samo za muškarce, odnosno žene. Npr. kako biste izdvojili
+muškarce, stvorite polje koje zadrži bool vrijednosti i njega koristite kao indeks retka ind = (data[:,0] == 1)
+'''
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+data = np.loadtxt('data.csv', delimiter = ',', skiprows = 1)
+rows, cols = np.shape(data)
+
+print('Number of people measured: ', rows)
+
+height = data[:,1]
+weight = data[:,2]
+plt.scatter(height, weight, s = 1)
+plt.xlabel('height')
+plt.ylabel('weight')
+plt.show()
+
+height50 = height[: : 50]
+weight50 = weight[: : 50]
+plt.scatter(height50, weight50, s = 5)
+plt.xlabel('height')
+plt.ylabel('weight')
+plt.title('Every 50th person')
+plt.show()
+
+print('Minimal height', np.min(height))
+print('Maximal height', np.max(height))
+print('Average height', np.mean(height))
+
+men = data[np.where(data[:, 0] == 1)]
+women = data[np.where(data[:, 0] == 0)]
+print('Minimal men height', np.min(men[:, 1]))
+print('Maximal men height', np.max(men[:, 1]))
+print('Average men height', np.mean(men[:, 1]))
+print('Minimal women height', np.min(women[:, 1]))
+print('Maximal women height', np.max(women[:, 1]))
+print('Average women height', np.mean(women[:, 1]))
+
+
+
+
+
+'''
+Skripta zadatak_3.py ucitava sliku road.jpg. Manipulacijom odgovarajuce numpy matrice pokušajte:
+a) posvijetliti sliku,
+b) prikazati samo drugu cetvrtinu slike po širini, 
+c) zarotirati sliku za 90 stupnjeva u smjeru kazaljke na satu,
+d) zrcaliti sliku.
+'''
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+img = plt.imread('road.jpg')
+img = img[:, :, 0].copy()
+
+brightness = 50
+brightened_image = np.clip(img.astype(np.uint16) + brightness, 0, 255).astype(np.uint8)
+plt.figure()
+plt.imshow(brightened_image, cmap='gray')
+plt.show()
+
+width = img.shape[1]
+q = width // 4
+second_quarter_img = img[:, q : 2*q]
+plt.figure()
+plt.imshow(second_quarter_img, cmap='gray')
+plt.show()
+
+rotated_img = np.rot90(img, k=-1)
+plt.figure()
+plt.imshow(rotated_img, cmap='gray')
+plt.show()
+
+mirrored_img = np.flip(img, axis=1)
+plt.figure()
+plt.imshow(mirrored_img, cmap='gray')
+plt.show()
+
+
+
+
+'''
+Napišite program koji ce kreirati sliku koja sadrži cetiri kvadrata crne odnosno
+bijele boje (vidi primjer slike 2.4 ispod). Za kreiranje ove funkcije koristite numpy funkcije
+zeros i ones kako biste kreirali crna i bijela polja dimenzija 50x50 piksela. Kako biste ih složili
+u odgovarajuci oblik koristite numpy funkcije hstack i vstack.
+'''
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+black = np.zeros((50, 50), dtype=np.uint8) 
+white = np.ones((50, 50), dtype=np.uint8) * 255
+
+image = np.vstack((np.hstack((black, white)), np.hstack((white, black))))
+
+plt.figure()
+plt.imshow(image, cmap="gray") 
+plt.show()
