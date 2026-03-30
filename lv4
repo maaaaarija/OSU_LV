@@ -1,0 +1,151 @@
+'''
+Skripta zadatak_1.py ucitava podatkovni skup iz data_C02_emission.csv.
+Potrebno je izgraditi i vrednovati model koji procjenjuje emisiju C02 plinova na temelju ostalih numeriˇckih ulaznih veliˇcina. Detalje oko ovog podatkovnog skupa mogu se prona´ci u 3.
+laboratorijskoj vježbi.
+a) Odaberite željene numericke velicine specificiranjem liste s nazivima stupaca. Podijelite
+podatke na skup za ucenje i skup za testiranje u omjeru 80%-20%.
+b) Pomocu matplotlib biblioteke i dijagrama raspršenja prikažite ovisnost emisije C02 plinova
+o jednoj numerickoj velicini. Pri tome podatke koji pripadaju skupu za ucenje oznacite
+plavom bojom, a podatke koji pripadaju skupu za testiranje oznacite crvenom bojom.
+c) Izvršite standardizaciju ulaznih velicina skupa za ucenje. Prikažite histogram vrijednosti
+jedne ulazne velicine prije i nakon skaliranja. Na temelju dobivenih parametara skaliranja
+transformirajte ulazne velicine skupa podataka za testiranje.
+d) Izgradite linearni regresijski modeli. Ispišite u terminal dobivene parametre modela i
+povežite ih s izrazom 4.6.
+e) Izvršite procjenu izlazne velicine na temelju ulaznih velicina skupa za testiranje. Prikažite
+pomocu dijagrama raspršenja odnos izmedu stvarnih vrijednosti izlazne velicine i procjene
+dobivene modelom.
+f) Izvršite vrednovanje modela na nacin da izracunate vrijednosti regresijskih metrika na
+skupu podataka za testiranje.
+g) Što se dogada s vrijednostima evaluacijskih metrika na testnom skupu kada mijenjate broj
+ulaznih velicina?
+'''
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import math
+import sklearn.linear_model as lm
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error, r2_score
+
+data = pd.read_csv('data_C02_emission.csv')
+
+X = data[['Engine Size (L)', 'Cylinders', 'Fuel Consumption City (L/100km)', 'Fuel Consumption Hwy (L/100km)', 'Fuel Consumption Comb (L/100km)', 'Fuel Consumption Comb (mpg)']]
+y = data['CO2 Emissions (g/km)']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+
+plt.figure()
+plt.scatter(X_train['Fuel Consumption Comb (L/100km)'], y_train, color='blue', label='Training data', alpha=0.5)
+plt.scatter(X_test['Fuel Consumption Comb (L/100km)'], y_test, color='red', label='Testing data', alpha=0.5)
+plt.xlabel('Fuel Consumption Comb (L/100km)')
+plt.ylabel('CO2 Emissions (g/km)')
+plt.legend()
+plt.show()
+
+plt.figure()
+plt.hist(X_train['Fuel Consumption City (L/100km)'], color='green', bins=20)
+plt.title('Before Scaling')
+plt.show()
+
+sc = StandardScaler()
+X_train_s = sc.fit_transform(X_train)
+X_test_s = sc.transform(X_test)
+
+X_train_s = pd.DataFrame(X_train_s, columns=X_train.columns)
+X_test_s = pd.DataFrame(X_test_s, columns=X_test.columns)
+
+plt.figure()
+plt.hist(X_train_s['Fuel Consumption City (L/100km)'], color='red', bins=20)
+plt.title('After Scaling (Standardization)')
+plt.show()
+
+linearModel = lm.LinearRegression()
+linearModel.fit(X_train_s, y_train)
+
+print(f"Intercept (theta_0): {linearModel.intercept_}")
+print(f"Coefficients (theta_1...m): {linearModel.coef_}")
+
+y_test_p = linearModel.predict(X_test_s)
+
+plt.figure()
+plt.scatter(y_test, y_test_p, color='blue', alpha=0.5)
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+plt.xlabel('Real Values')
+plt.ylabel('Predicted Values')
+plt.title('Real vs Predicted CO2 Emissions')
+plt.show()
+
+MAE = mean_absolute_error(y_test, y_test_p)
+MSE = mean_squared_error(y_test, y_test_p)
+RMSE = math.sqrt(MSE)
+MAPE = mean_absolute_percentage_error(y_test, y_test_p)
+R2 = r2_score(y_test, y_test_p)
+
+print(f'MAE: {MAE}')
+print(f'MSE: {MSE}')
+print(f'RMSE: {RMSE}')
+print(f'MAPE: {MAPE}')
+print(f'R2 Score: {R2}')
+
+
+
+
+
+
+
+
+
+'''
+Na temelju rješenja prethodnog zadatka izradite model koji koristi i kategoricku
+varijable „Fuel Type“ kao ulaznu velicinu. Pri tome koristite 1-od-K kodiranje kategorickih
+velicina. Radi jednostavnosti nemojte skalirati ulazne velicine. Komentirajte dobivene rezultate.
+Kolika je maksimalna pogreška u procjeni emisije C02 plinova u g/km? O kojem se modelu
+vozila radi?
+'''
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import sklearn.linear_model as lm
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+
+data = pd.read_csv('data_C02_emission.csv')
+
+ohe = OneHotEncoder()
+X_encoded = ohe.fit_transform(data[['Fuel Type']]).toarray()
+ohe_columns = ohe.get_feature_names_out(['Fuel Type'])
+X_encoded_df = pd.DataFrame(X_encoded, columns=ohe_columns, index=data.index)
+
+numerical_features = data.select_dtypes(include='number')
+full_data = pd.concat([numerical_features, X_encoded_df], axis=1)
+
+X = full_data.drop(['CO2 Emissions (g/km)'], axis=1)
+y = full_data['CO2 Emissions (g/km)']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+
+linearModel = lm.LinearRegression()
+linearModel.fit(X_train, y_train)
+
+y_test_prediction = linearModel.predict(X_test)
+
+plt.figure()
+plt.scatter(y_test, y_test_prediction, alpha=0.5)
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+plt.xlabel('Real Values')
+plt.ylabel('Predicted Values')
+plt.title('Real vs Predicted CO2 (with Fuel Type)')
+plt.show()
+
+absolute_errors = abs(y_test - y_test_prediction)
+max_error_index = absolute_errors.idxmax()
+max_error = absolute_errors[max_error_index]
+vehicle_model = data.loc[max_error_index, 'Model']
+
+print(f'Model coefficients: {linearModel.coef_}')
+print(f'Maximum absolute error: {max_error:.2f} g/km')
+print(f'Model of the vehicle associated with maximum error: {vehicle_model}')
