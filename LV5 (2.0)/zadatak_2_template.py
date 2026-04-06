@@ -1,3 +1,28 @@
+'''
+Skripta zadatak_2.py ucitava podatkovni skup Palmer Penguins [1]. Ovaj
+podatkovni skup sadrži mjerenja provedena na tri razlicite vrste pingvina (’Adelie’, ’Chins
+trap’, ’Gentoo’) na tri razlicita otoka u podrucju Palmer Station, Antarktika. Vrsta pingvina
+odabrana je kao izlazna velicina i pri tome su klase oznacene s cjelobrojnim vrijednostima
+0, 1 i 2. Ulazne velicine su duljina kljuna (’bill_length_mm’) i duljina peraje u mm (’flip
+per_length_mm’). Za vizualizaciju podatkovnih primjera i granice odluke u skripti je dostupna
+funkcija plot_decision_region.
+a) Pomocu stupcastog dijagrama prikažite koliko primjera postoji za svaku klasu (vrstu
+pingvina) u skupu podataka za ucenje i skupu podataka za testiranje. Koristite numpy
+funkciju unique.
+b) Izgradite model logisticke regresije pomocu scikit-learn biblioteke na temelju skupa poda
+taka za ucenje.
+c) Pronadite u atributima izgradenog modela parametre modela. Koja je razlika u odnosu na
+binarni klasifikacijski problem iz prvog zadatka?
+d) Pozovite funkciju plot_decision_region pri cemu joj predajte podatke za ucenje i
+izgradeni model logisticke regresije. Kako komentirate dobivene rezultate?
+e) Provedite klasifikaciju skupa podataka za testiranje pomocu izgradenog modela logisticke
+regresije. Izracunajte i prikažite matricu zabune na testnim podacima. Izracunajte tocnost.
+Pomocu classification_report funkcije izracunajte vrijednost cetiri glavne metrike
+na skupu podataka za testiranje.
+f) Dodajte u model još ulaznih velicina. Što se dogada s rezultatima klasifikacije na skupu
+podataka za testiranje?
+'''
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
