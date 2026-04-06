@@ -1,0 +1,91 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score, classification_report
+
+
+labels = {0: 'Adelie', 1: 'Chinstrap', 2: 'Gentoo'}
+
+def plot_decision_regions(X, y, classifier, resolution=0.02):
+    plt.figure()
+    markers = ('s', 'x', 'o', '^', 'v')
+    colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+    cmap = ListedColormap(colors[:len(np.unique(y))])
+    
+    
+    x1_min, x1_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    x2_min, x2_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx1, xx2 = np.meshgrid(np.arange(x1_min, x1_max, resolution),
+                           np.arange(x2_min, x2_max, resolution))
+    
+    
+    Z = classifier.predict(np.array([xx1.ravel(), xx2.ravel()]).T)
+    Z = Z.reshape(xx1.shape)
+    
+    
+    plt.contourf(xx1, xx2, Z, alpha=0.3, cmap=cmap)
+    
+    
+    for idx, cl in enumerate(np.unique(y)):
+        plt.scatter(x=X[y == cl, 0], y=X[y == cl, 1],
+                    alpha=0.8, c=colors[idx],
+                    marker=markers[idx], edgecolor='w',
+                    label=labels[cl])
+    
+    plt.xlabel('Duljina kljuna (mm)')
+    plt.ylabel('Duljina peraje (mm)')
+    plt.legend(loc='upper left')
+    plt.title('Regije odluke (Trening skup)')
+    plt.show()
+
+# ucitavanje podataka
+df = pd.read_csv('penguins.csv')
+
+# ciscenje podataka
+df = df.drop(columns=['sex'])
+df.dropna(axis=0, inplace=True)    # brisati sve retke koji imaju barem jedno prazno polje
+
+# kodiranje i pretvorba u cijele brojeve, sto rjesava ValueError
+df['species'] = df['species'].replace({'Adelie': 0, 'Chinstrap': 1, 'Gentoo': 2})
+df['species'] = df['species'].astype(int) 
+
+# odredivanje znacajki i cilja
+X = df[['bill_length_mm', 'flipper_length_mm']].to_numpy()
+y = df['species'].values # 1D niz
+
+# podjela na train i test slupove
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+
+# prikaz broja primjera (Zadatak a)
+train_classes, train_counts = np.unique(y_train, return_counts=True)   # 'unique' vraća koje klase imamo (0,1,2) i 'counts' koliko ih ima u trening skupu.
+plt.bar(train_classes, train_counts, tick_label=['Adelie', 'Chinstrap', 'Gentoo'])
+plt.title('Broj primjera po klasi (Train skup)')
+plt.ylabel('Broj primjera')
+plt.show()
+
+# izgradnja modela (Zadatak b i c)
+# povećavani max_iter na 1000 da se izbjegne ConvergenceWarning
+LogRegression_model = LogisticRegression(max_iter=1000)
+LogRegression_model.fit(X_train, y_train)
+
+print('Koeficijenti modela (theta_1, theta_2):\n', LogRegression_model.coef_)
+print('Odsječak (theta_0):\n', LogRegression_model.intercept_)
+
+# crtanje regija odluke (Zadatak d)
+plot_decision_regions(X_train, y_train, classifier=LogRegression_model)
+
+# testiranje i metrike (Zadatak e)
+y_test_p = LogRegression_model.predict(X_test)
+
+print('\nTočnost (Accuracy):', accuracy_score(y_test, y_test_p))
+print('\nClassification Report:\n', classification_report(y_test, y_test_p))
+
+# matrica zabune
+cm = confusion_matrix(y_test, y_test_p)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Adelie', 'Chinstrap', 'Gentoo'])
+disp.plot(cmap=plt.cm.Blues)
+plt.title('Matrica zabune (Testni skup)')
+plt.show()
