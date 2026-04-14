@@ -1,0 +1,288 @@
+'''
+Skripta zadatak_1.py sadrži funkciju generate_data koja služi za generiranje
+umjetnih podatkovnih primjera kako bi se demonstriralo grupiranje. Funkcija prima cijeli broj
+koji definira željeni broju uzoraka u skupu i cijeli broj od 1 do 5 koji definira na koji nacin ce
+se generirati podaci, a vraca generirani skup podataka u obliku numpy polja pri cemu su prvi i
+drugi stupac vrijednosti prve odnosno druge ulazne velicine za svaki podatak. Skripta generira
+500 podatkovnih primjera i prikazuje ih u obliku dijagrama raspršenja.
+1. Pokrenite skriptu. Prepoznajete li koliko ima grupa u generiranim podacima? Mijenjajte
+nacin generiranja podataka.
+2. Primijenite metodu K srednjih vrijednosti te ponovo prikažite primjere, ali svaki primjer
+obojite ovisno o njegovoj pripadnosti pojedinoj grupi. Nekoliko puta pokrenite programski
+kod. Mijenjate broj K. Što primjecujete?
+3. Mijenjajte nacin definiranja umjetnih primjera te promatrajte rezultate grupiranja podataka
+(koristite optimalni broj grupa). Kako komentirate dobivene rezultate?
+'''
+
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.cluster.hierarchy import dendrogram
+from sklearn.datasets import make_blobs, make_circles, make_moons
+from sklearn.cluster import KMeans, AgglomerativeClustering
+
+
+def generate_data(n_samples, flagc):
+    # 3 grupe
+    if flagc == 1:
+        random_state = 365
+        X,y = make_blobs(n_samples=n_samples, random_state=random_state)
+    
+    # 3 grupe
+    elif flagc == 2:
+        random_state = 148
+        X,y = make_blobs(n_samples=n_samples, random_state=random_state)
+        transformation = [[0.60834549, -0.63667341], [-0.40887718, 0.85253229]]
+        X = np.dot(X, transformation)
+
+    # 4 grupe 
+    elif flagc == 3:
+        random_state = 148
+        X, y = make_blobs(n_samples=n_samples,
+                        centers = 4,
+                        cluster_std=np.array([1.0, 2.5, 0.5, 3.0]),
+                        random_state=random_state)
+    # 2 grupe
+    elif flagc == 4:
+        X, y = make_circles(n_samples=n_samples, factor=.5, noise=.05)
+    
+    # 2 grupe  
+    elif flagc == 5:
+        X, y = make_moons(n_samples=n_samples, noise=.05)
+    
+    else:
+        X = []
+        
+    return X
+
+# generiranje podatkovnih primjera
+X = generate_data(500, 1)
+
+# prikazi primjere u obliku dijagrama rasprsenja
+plt.figure()
+plt.scatter(X[:,0],X[:,1])
+plt.xlabel('$x_1$')
+plt.ylabel('$x_2$')
+plt.title('podatkovni primjeri')
+plt.show()
+
+#u generiranim podacima postoje 3 grupe
+
+km = KMeans(n_clusters = 3, init = 'random', n_init = 5, random_state = 0)
+km.fit(X)
+labels = km.predict(X)
+
+plt.figure()
+plt.scatter(X[:,0], X[:,1], c = labels, cmap = 'magma')
+plt.xlabel('x1')
+plt.ylabel('x2')
+plt.title('Metoda K srednjih vrijednosti')
+plt.show()
+
+#ukoliko stavimo previse malu vrijednost K (n_clusters) u tom slučaju nam se više grupa
+#spaja u jednu, međutim ako stavimo veliku vrijednost K, tada nam se grupa dijeli na više manjih grupa
+
+
+
+
+
+
+
+
+
+
+'''
+Kvantizacija boje je proces smanjivanja broja razlicitih boja u digitalnoj slici, ali
+uzimajuci u obzir da rezultantna slika vizualno bude što slicnija originalnoj slici. Jednostavan
+nacin kvantizacije boje može se postici primjenom algoritma K srednjih vrijednosti na RGB
+vrijednosti elemenata originalne slike. Kvantizacija se tada postiže zamjenom vrijednosti svakog
+elementa originalne slike s njemu najbližim centrom. Na slici 7.3a dan je primjer originalne
+slike koja sadrži ukupno 106,276 boja, dok je na slici 7.3b prikazana rezultantna slika nakon
+kvantizacije i koja sadrži samo 5 boja koje su odredene algoritmom K srednjih vrijednosti.
+1. Otvorite skriptu zadatak_2.py. Ova skripta ucitava originalnu RGB sliku test_1.jpg
+te ju transformira u podatkovni skup koji dimenzijama odgovara izrazu (7.2) pri cemu je n
+broj elemenata slike, a m je jednak 3. Koliko je razlicitih boja prisutno u ovoj slici?
+2. Primijenite algoritam K srednjih vrijednosti koji ce pronaci grupe u RGB vrijednostima
+elemenata originalne slike.
+3. Vrijednost svakog elementa slike originalne slike zamijeni s njemu pripadajucim centrom.
+4. Usporedite dobivenu sliku s originalnom. Mijenjate broj grupa K. Komentirajte dobivene
+rezultate.
+5. Primijenite postupak i na ostale dostupne slike.
+6. Graficki prikažite ovisnost J o broju grupa K. Koristite atribut inertia objekta klase
+KMeans. Možete li uociti lakat koji upucuje na optimalni broj grupa?
+7. Elemente slike koji pripadaju jednoj grupi prikažite kao zasebnu binarnu sliku. Što
+primjecujete?
+'''
+
+# prva verzija (fali jedan dio koji ostane u boji)
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.image as Image
+from sklearn.cluster import KMeans
+
+# ucitaj sliku
+img = Image.imread("imgs\imgs\\test_1.jpg")
+
+# prikazi originalnu sliku
+plt.figure()
+plt.title("Originalna slika")
+plt.imshow(img)
+plt.tight_layout()
+plt.show()
+
+# pretvori vrijednosti elemenata slike u raspon 0 do 1
+img = img.astype(np.float64) / 255
+
+# transfromiraj sliku u 2D numpy polje (jedan red su RGB komponente elementa slike)
+w,h,d = img.shape
+img_array = np.reshape(img, (w*h, d))
+
+# rezultatna slika
+img_array_aprox = img_array.copy()
+
+colors_num = np.unique(img_array)
+print('Broj boja u originalnoj slici: ', len(colors_num))
+
+# ... (učitavanje i transformacija ostaju isti) ...
+
+# 2. Primjena K-means
+km = KMeans(n_clusters=15, init='random', n_init=5, random_state=0)
+km.fit(img_array) # Fitaj na originalu
+
+# 3. Zamjena vrijednosti (Vektorizirano)
+labels = km.predict(img_array)
+centers = km.cluster_centers_
+img_array_aprox = centers[labels] # Mnogo brže od for petlje
+
+# Povratak u format slike
+img_finished = np.reshape(img_array_aprox, (w, h, d))
+
+# 6. Lakat metoda (na originalu!)
+J_values = []
+for i in range(1, 10):
+    km_test = KMeans(n_clusters=i, n_init=5)
+    km_test.fit(img_array)
+    J_values.append(km_test.inertia_)
+
+# 7. Prikaz grupa
+for i in range(km.n_clusters):
+    img_bin = (labels == i).reshape((w, h)) # Binarna maska
+    plt.figure()
+    plt.imshow(img_bin, cmap='gray')
+    plt.title(f'Grupa {i+1}')
+    plt.show()
+
+#vec nakon 2 grupe boja jasno se vide razlike i tekst se moze procitati
+
+colors_num = np.unique(img_array)
+print('broj boja u originalnoj slici')
+
+
+
+
+
+
+
+
+
+
+
+# ovo je isto drugi zadatak
+
+
+'''
+Kvantizacija boje je proces smanjivanja broja razlicitih boja u digitalnoj slici, ali
+uzimajuci u obzir da rezultantna slika vizualno bude što slicnija originalnoj slici. Jednostavan
+nacin kvantizacije boje može se postici primjenom algoritma K srednjih vrijednosti na RGB
+vrijednosti elemenata originalne slike. Kvantizacija se tada postiže zamjenom vrijednosti svakog
+elementa originalne slike s njemu najbližim centrom. Na slici 7.3a dan je primjer originalne
+slike koja sadrži ukupno 106,276 boja, dok je na slici 7.3b prikazana rezultantna slika nakon
+kvantizacije i koja sadrži samo 5 boja koje su odredene algoritmom K srednjih vrijednosti.
+1. Otvorite skriptu zadatak_2.py. Ova skripta ucitava originalnu RGB sliku test_1.jpg
+te ju transformira u podatkovni skup koji dimenzijama odgovara izrazu (7.2) pri cemu je n
+broj elemenata slike, a m je jednak 3. Koliko je razlicitih boja prisutno u ovoj slici?
+2. Primijenite algoritam K srednjih vrijednosti koji ce pronaci grupe u RGB vrijednostima
+elemenata originalne slike.
+3. Vrijednost svakog elementa slike originalne slike zamijeni s njemu pripadajucim centrom.
+4. Usporedite dobivenu sliku s originalnom. Mijenjate broj grupa K. Komentirajte dobivene
+rezultate.
+5. Primijenite postupak i na ostale dostupne slike.
+6. Graficki prikažite ovisnost J o broju grupa K. Koristite atribut inertia objekta klase
+KMeans. Možete li uociti lakat koji upucuje na optimalni broj grupa?
+7. Elemente slike koji pripadaju jednoj grupi prikažite kao zasebnu binarnu sliku. Što
+primjecujete?
+'''
+
+# druga verzija (ima dio i u boji)
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.image as Image
+from sklearn.cluster import KMeans
+
+# 1. Učitavanje slike
+img = Image.imread("imgs/imgs/test_1.jpg")
+
+# Prikaz originalne slike
+plt.figure()
+plt.title("Originalna slika")
+plt.imshow(img)
+plt.axis('off')
+plt.show()
+
+# Pretvaranje u float i skaliranje [0,1]
+img = img.astype(np.float64) / 255
+
+# 2. Transformacija u (n, 3)
+w, h, d = img.shape
+img_array = np.reshape(img, (w * h, d))
+
+# Broj različitih boja (ISPRAVNO)
+colors_num = np.unique(img_array, axis=0)
+print('Broj boja u originalnoj slici:', len(colors_num))
+
+# 3. K-means
+K = 15
+km = KMeans(n_clusters=K, init='random', n_init=5, random_state=0)
+km.fit(img_array)
+
+# Zamjena vrijednosti centrima
+labels = km.labels_
+centers = km.cluster_centers_
+img_array_aprox = centers[labels]
+
+# Povratak u oblik slike
+img_finished = np.reshape(img_array_aprox, (w, h, d))
+
+# Prikaz kvantizirane slike
+plt.figure()
+plt.title(f"Kvantizirana slika (K={K})")
+plt.imshow(img_finished)
+plt.axis('off')
+plt.show()
+
+# 4. Lakat metoda
+J_values = []
+K_range = range(1, 10)
+
+for i in K_range:
+    km_test = KMeans(n_clusters=i, n_init=5, random_state=0)
+    km_test.fit(img_array)
+    J_values.append(km_test.inertia_)
+
+# Graf lakat metode
+plt.figure()
+plt.plot(K_range, J_values, marker='o')
+plt.xlabel('Broj grupa K')
+plt.ylabel('J (inertia)')
+plt.title('Lakat metoda')
+plt.show()
+
+# 5. Prikaz binarnih slika za svaku grupu
+for i in range(K):
+    img_bin = (labels == i).reshape((w, h))
+    plt.figure()
+    plt.imshow(img_bin, cmap='gray')
+    plt.title(f'Grupa {i+1}')
+    plt.axis('off')
+    plt.show()
