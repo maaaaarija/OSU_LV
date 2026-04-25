@@ -1,0 +1,48 @@
+Što se dogada s procesom ucenja:
+1. ako se koristi jako velika ili jako mala velicina serije?
+2. ako koristite jako malu ili jako veliku vrijednost stope ucenja?
+3. ako izbacite odredene slojeve iz mreže kako biste dobili manju mrežu?
+4. ako za 50% smanjite velicinu skupa za ucenje?
+
+
+
+Zadatak 9.4.4: Analiza procesa učenja
+1. Što se događa s procesom učenja ako se koristi jako velika ili jako mala veličina 
+serije (batch size)?
+Veličina serije određuje koliko slika mreža "pogleda" prije nego što izračuna pogrešku 
+i ažurira svoje težine (parametre).
+
+Jako mala veličina serije (npr. batch_size = 1 ili 4):
+
+Prednosti: Zauzima jako malo radne memorije (GPU/RAM). Unosi "šum" u učenje što može 
+pomoći modelu da pobjegne iz lokalnih minimuma i bolje generalizira.
+
+Nedostaci: Učenje je jako sporo jer se težine ažuriraju nakon svake slike. 
+Krivulja gubitka (loss) će jako oscilirati (skakati gore-dolje) jer jedna "čudna" slika 
+može drastično promijeniti smjer učenja.
+
+Jako velika veličina serije (npr. batch_size = 1024 ili više):
+
+Prednosti: Procesiranje je brže jer se maksimalno koristi paralelizam procesora (GPU). 
+Gradijent (smjer učenja) je stabilniji i "glatkiji".
+
+Nedostaci: Zahtijeva puno memorije. Postoji opasnost da model zapne u oštrim lokalnim 
+minimumima i slabije generalizira na nove podatke (tzv. generalization gap).
+
+
+2. Što se događa ako koristite jako malu ili jako veliku stopu učenja (learning rate)?
+Stopa učenja je najvažniji hiperparametar. Ona određuje koliki "korak" radimo u smjeru u 
+kojem mislimo da je rješenje.
+
+Jako mala stopa učenja (npr. 0.0000001):
+
+Problem: Učenje će biti ekstremno sporo. Mreži će trebati tisuće epoha da postigne 
+bilo kakav napredak. Također, model može lako zapeti u prvom malom "udubljenju" 
+(lokalni minimum) i nikada ne pronaći stvarno optimalno rješenje.
+
+Jako velika stopa učenja (npr. 0.1 ili 1.0 za kompleksne mreže):
+
+Problem: Model "skače" previše. Umjesto da se polako spusti u dolinu gdje je rješenje, 
+on preleti preko nje na drugu stranu brda. Krivulja gubitka će ili divlje oscilirati ili 
+će "eksplodirati" (pogreška će postati beskonačna - NaN). Model nikada neće konvergirati 
+(smiriti se) u dobrom rješenju.
