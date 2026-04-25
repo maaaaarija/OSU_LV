@@ -1,0 +1,91 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+
+# 1. UCITAVANJE (Prilagodi putanju i stupce)
+# data = pd.read_csv('ime.csv') 
+# X = data.iloc[:, :-1] # Svi stupci osim zadnjeg
+# y = data.iloc[:, -1]  # Zadnji stupac
+
+# 2. SPLIT 80/20
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. SKALIRANJE - KLJUČNO ZA KNN I SVM!
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+# 4. ODABER MODEL (Otkomenatiraj onaj koji ti treba)
+# from sklearn.linear_model import LogisticRegression
+# model = LogisticRegression()
+
+# from sklearn.neighbors import KNeighborsClassifier
+# model = KNeighborsClassifier(n_neighbors=5)
+
+# from sklearn.svm import SVC
+# model = SVC(kernel='linear') # ili 'rbf' za nelinearne
+
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+# 5. EVALUACIJA
+print(confusion_matrix(y_test, y_pred))
+print(f"Accuracy: {accuracy_score(y_test, y_pred)}")
+# classification_report daje preciznost i odziv za SVAKU klasu posebno
+print(classification_report(y_test, y_pred))
+
+
+
+
+
+
+
+
+
+
+
+
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Input
+
+# --- PRIPREMA KAO U TEMPLATE 1 ---
+# Napomena: Ako je multiklasna (npr. 3 klase), koristi:
+# y = tf.keras.utils.to_categorical(y)
+
+model = Sequential([
+    Input(shape=(X_train.shape[1],)), # Automatski uzima broj ulaza
+    Dense(12, activation='relu'),
+    Dense(8, activation='relu'),
+    # ZA BINARNU (0/1):
+    Dense(1, activation='sigmoid') 
+    # ZA MULTIKLASNU (3 klase):
+    # Dense(3, activation='softmax')
+])
+
+# KOMPILACIJA
+# Za binarnu: loss='binary_crossentropy'
+# Za multiklasnu: loss='categorical_crossentropy'
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# TRENING
+history = model.fit(X_train, y_train, epochs=150, batch_size=10, validation_split=0.1)
+
+# EVALUACIJA I SPREMANJE
+model.save('moj_model.keras')
+# loss_plot
+plt.plot(history.history['loss'])
+plt.title('Model Loss tijekom treninga')
+plt.show()
+
+
+
+
+
+
+
+
