@@ -1,0 +1,466 @@
+import numpy as np
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.utils import to_categorical
+from matplotlib import pyplot as plt
+
+
+# ucitaj CIFAR-10 podatkovni skup
+(X_train, y_train), (X_test, y_test) = cifar10.load_data()
+
+# prikazi 9 slika iz skupa za ucenje
+plt.figure()
+for i in range(9):
+    plt.subplot(330 + 1 + i)
+    plt.xticks([]),plt.yticks([])
+    plt.imshow(X_train[i])
+
+plt.show()
+
+
+# pripremi podatke (skaliraj ih na raspon [0,1]])
+X_train_n = X_train.astype('float32')/ 255.0
+X_test_n = X_test.astype('float32')/ 255.0
+
+# 1-od-K kodiranje
+y_train = to_categorical(y_train, dtype ="uint8")
+y_test = to_categorical(y_test, dtype ="uint8")
+
+# CNN mreza
+model = keras.Sequential()
+model.add(layers.Input(shape=(32,32,3)))
+model.add(layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Flatten())
+model.add(layers.Dense(500, activation='relu'))
+model.add(layers.Dense(10, activation='softmax'))
+
+model.summary()
+
+# definiraj listu s funkcijama povratnog poziva
+my_callbacks = [
+    keras.callbacks.TensorBoard(log_dir = 'logs/cnn',
+                                update_freq = 100)
+]
+
+model.compile(optimizer='adam',
+                loss='categorical_crossentropy',
+                metrics=['accuracy'])
+
+model.fit(X_train_n,
+            y_train,
+            epochs = 40,
+            batch_size = 64,
+            callbacks = my_callbacks,
+            validation_split = 0.1)
+
+
+score = model.evaluate(X_test_n, y_test, verbose=0)
+print(f'Tocnost na testnom skupu podataka: {100.0*score[1]:.2f}')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+Skripta Zadatak_1.py ucitava CIFAR-10 skup podataka. Ovaj skup sadrži
+50000 slika u skupu za ucenje i 10000 slika za testiranje. Slike su RGB i rezolucije su 32x32.
+Svakoj slici je pridružena jedna od 10 klasa ovisno koji je objekt prikazan na slici. Potrebno je:
+1. Proucite dostupni kod. Od kojih se slojeva sastoji CNN mreža? Koliko ima parametara
+mreža?
+2. Pokrenite ucenje mreže. Pratite proces ucenja pomocu alata Tensorboard na sljedeci nacin.
+Pokrenite Tensorboard u terminalu pomocu naredbe:
+tensorboard–logdir=logs
+i zatim otvorite adresu http://localhost:6006/ pomo´cu web preglednika.
+3. Proucite krivulje koje prikazuju tocnost klasifikacije i prosjecnu vrijednost funkcije gubitka
+na skupu podataka za ucenje i skupu podataka za validaciju. Što se dogodilo tijekom ucenja
+mreže? Zapišite tocnost koju ste postigli na skupu podataka za testiranje.
+'''
+
+
+import numpy as np
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.utils import to_categorical
+from matplotlib import pyplot as plt
+
+# 1. Učitavanje CIFAR-10 skupa podataka 
+# Skup sadrži 50.000 slika za učenje i 10.000 za testiranje 
+(X_train, y_train), (X_test, y_test) = cifar10.load_data()
+
+# Prikaži 9 slika iz skupa za učenje radi vizualizacije
+plt.figure(figsize=(8,8))
+for i in range(9):
+    plt.subplot(330 + 1 + i)
+    plt.xticks([]), plt.yticks([])
+    plt.imshow(X_train[i])
+plt.show()
+
+# 2. Priprema podataka
+# Skaliranje na raspon [0,1] pretvorbom u float32 
+X_train_n = X_train.astype('float32') / 255.0
+X_test_n = X_test.astype('float32') / 255.0
+
+# 1-od-K kodiranje labela (One-hot encoding)
+y_train = to_categorical(y_train, 10)
+y_test = to_categorical(y_test, 10)
+
+# 3. Izgradnja CNN mreže 
+model = keras.Sequential()
+
+# Ulazni sloj: Slike su 32x32 piksela s 3 kanala (RGB) 
+model.add(layers.Input(shape=(32, 32, 3)))
+
+# Prvi blok: Konvolucija (32 filtra) + Sažimanje 
+model.add(layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+
+# Drugi blok: Konvolucija (64 filtra) + Sažimanje
+model.add(layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+
+# Treći blok: Konvolucija (128 filtra) + Sažimanje 
+model.add(layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+
+# Ravnanje i potpuno povezani slojevi 
+model.add(layers.Flatten())
+model.add(layers.Dense(500, activation='relu'))
+model.add(layers.Dense(10, activation='softmax')) # Izlazni sloj za 10 klasa
+
+# Ispis strukture mreže i broja parametara 
+model.summary()
+
+# 4. Definiranje callback funkcija 
+# TensorBoard bilježi proces učenja za vizualizaciju 
+my_callbacks = [
+    keras.callbacks.TensorBoard(log_dir='logs/zadatak_1', update_freq=100)
+]
+
+# 5. Prevođenje i učenje modela 
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+# Učenje s 10% validacijskog skupa 
+history = model.fit(X_train_n,
+                    y_train,
+                    epochs=40,
+                    batch_size=64,
+                    callbacks=my_callbacks,
+                    validation_split=0.1)
+
+# 6. Evaluacija modela na testnom skupu 
+score = model.evaluate(X_test_n, y_test, verbose=0)
+print(f'Točnost na testnom skupu podataka: {100.0*score[1]:.2f}%')
+print(f'Gubitak (Loss) na testnom skupu: {score[0]:.4f}')
+
+
+'''
+1. Od kojih se slojeva sastoji mreža? 
+Mreža se sastoji od:Conv2D slojeva: Izvlače značajke (rubove, teksture) pomoću 32, 64 i 128 
+filtara.MaxPooling2D slojeva: Smanjuju dimenzije i broj parametara, čineći mrežu robusnijom.
+Flatten sloja: Pretvara 2D mape u 1D vektor za ulaz u klasifikator.Dense slojeva: Potpuno 
+povezani slojevi koji donose konačnu odluku o klasi.
+2. Koliko parametara ima mreža? 
+Broj parametara možeš vidjeti pokretanjem naredbe model.summary(). U ovoj konkretnoj 
+arhitekturi, najveći broj parametara dolazi iz prvog Dense sloja nakon operacije Flatten. 
+Točan broj će biti ispisan u konzoli (bit će ih preko 1.000.000 zbog Dense(500) sloja).
+3. Što se dogodilo tijekom učenja? Nakon što pokreneš TensorBoard naredbom 
+tensorboard --logdir logs, primijetit ćeš:Overfitting (Pretjerano usklađivanje): 
+Vjerojatno ćeš vidjeti da točnost na trening skupu nastavlja rasti prema 95%+, 
+dok se točnost na validacijskom skupu stabilizira ili čak počne padati nakon određenog 
+broja epoha.Gubitak (Loss): Gubitak na treningu će padati, ali na validaciji bi mogao 
+početi rasti, što je jasan znak da su potrebni Dropout ili Early Stopping (što se 
+rješava u sljedećim zadacima).
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+Modificirajte skriptu iz prethodnog zadatka na nacin da na odgovarajuca mjesta u
+mrežu dodate droput slojeve. Prije pokretanja ucenja promijenite Tensorboard funkciju povratnog
+poziva na nacin da informacije zapisuje u novi direktorij (npr. =/log/cnn_droput). Pratite tijek
+ucenja. Kako komentirate utjecaj dropout slojeva na performanse mreže?
+'''
+
+
+import numpy as np
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.utils import to_categorical
+
+# 1. Učitavanje i priprema podataka (isto kao u prvom zadatku)
+(X_train, y_train), (X_test, y_test) = cifar10.load_data()
+X_train_n = X_train.astype('float32') / 255.0
+X_test_n = X_test.astype('float32') / 255.0
+y_train = to_categorical(y_train, 10)
+y_test = to_categorical(y_test, 10)
+
+# 2. Izgradnja CNN mreže s Dropout slojevima
+model = keras.Sequential()
+model.add(layers.Input(shape=(32, 32, 3)))
+
+# Prvi konvolucijski blok
+model.add(layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Dropout(0.2)) # Dodano: isključuje 20% neurona 
+
+# Drugi konvolucijski blok
+model.add(layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Dropout(0.2)) # Dodano
+
+# Treći konvolucijski blok
+model.add(layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Dropout(0.2)) # Dodano
+
+# Klasifikacijski dio
+model.add(layers.Flatten())
+model.add(layers.Dense(500, activation='relu'))
+model.add(layers.Dropout(0.3)) # Dodano: obično veći postotak na Dense slojevima 
+model.add(layers.Dense(10, activation='softmax'))
+
+# 3. Promjena log direktorija za TensorBoard (prema uputi zadatka) 
+my_callbacks = [
+    keras.callbacks.TensorBoard(log_dir='logs/cnn_dropout', update_freq=100)
+]
+
+# 4. Prevođenje i učenje
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+model.fit(X_train_n, y_train,
+          epochs=40,
+          batch_size=64,
+          callbacks=my_callbacks,
+          validation_split=0.1)
+
+# 5. Evaluacija
+score = model.evaluate(X_test_n, y_test, verbose=0)
+print(f'Točnost s Dropoutom na testnom skupu: {100.0*score[1]:.2f}%')
+
+
+
+
+'''
+Što smo točno promijenili?Dodavanje Dropout slojeva: Ubacili smo layers.Dropout nakon 
+svakog sloja sažimanja i nakon glavnog gusto povezanog (Dense) sloja. Postotak (rate) 
+smo postavili na 0.2 (20%) i 0.3 (30%), što su tipične preporučene vrijednosti.Novi log 
+direktorij: Putanja u TensorBoard callbacku promijenjena je u 'logs/cnn_dropout' kako 
+bi u alatu mogli usporediti krivulje ovog modela s onim iz prvog zadatka.
+
+
+Kako Dropout utječe na performanse? (Komentar za izvještaj) Smanjenje razmaka (Gap): 
+U prvom zadatku si vjerojatno primijetio da točnost na treningu ide do 99%, a na 
+validaciji stane na npr. 75%. S dropoutom će se taj razmak smanjiti.Sporije učenje: 
+Mreži će trebati malo više epoha da postigne visoku točnost jer stalno "otežavamo" 
+posao neuronima gaseći ih.Bolja generalizacija: Konačna točnost na testnom skupu 
+(podacima koje mreža nikad nije vidjela) trebala bi biti veća nego u prvom zadatku 
+jer je model prisiljen naučiti robusnije značajke umjesto da "pamti" trening slike.
+
+
+Što ćeš vidjeti u Tensorboardu?
+
+Vidjet ćeš dvije krivulje (npr. plavu za prvi zadatak i crvenu za ovaj). 
+Primijetit ćeš da je krivulja gubitka (loss) na validacijskom skupu kod dropout modela 
+puno stabilnija i rjeđe počinje rasti (što je znak da nema toliko izraženog overfittinga).
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+Dodajte funkciju povratnog poziva za rano zaustavljanje koja ce zaustaviti proces
+ucenja nakon što se 5 uzastopnih epoha ne smanji prosjecna vrijednost funkcije gubitka na
+validacijskom skupu.
+'''
+
+
+import numpy as np
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.utils import to_categorical
+
+# 1. Priprema podataka (isto kao i do sada)
+(X_train, y_train), (X_test, y_test) = cifar10.load_data()
+X_train_n = X_train.astype('float32') / 255.0
+X_test_n = X_test.astype('float32') / 255.0
+y_train = to_categorical(y_train, 10)
+y_test = to_categorical(y_test, 10)
+
+# 2. Arhitektura mreže (zadržavamo Dropout iz Zadatka 2)
+model = keras.Sequential([
+    layers.Input(shape=(32, 32, 3)),
+    
+    layers.Conv2D(32, (3, 3), activation='relu', padding='same'),
+    layers.MaxPooling2D((2, 2)),
+    layers.Dropout(0.2),
+    
+    layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
+    layers.MaxPooling2D((2, 2)),
+    layers.Dropout(0.2),
+    
+    layers.Flatten(),
+    layers.Dense(500, activation='relu'),
+    layers.Dropout(0.3),
+    layers.Dense(10, activation='softmax')
+])
+
+# 3. Definiranje EarlyStopping i TensorBoard callback funkcija
+my_callbacks = [
+    # Rano zaustavljanje: prati se val_loss (gubitak na validacijskom skupu) 
+    # patience=5 znači da se učenje prekida nakon 5 epoha bez poboljšanja 
+    keras.callbacks.EarlyStopping(monitor='val_loss', 
+                                  patience=5, 
+                                  verbose=1,
+                                  restore_best_weights=True),
+    
+    keras.callbacks.TensorBoard(log_dir='logs/cnn_early_stopping', update_freq=100)
+]
+
+# 4. Prevođenje i učenje
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+# Postavljamo veći broj epoha (npr. 100), jer će EarlyStopping prekinuti učenje ranije
+model.fit(X_train_n, y_train,
+          epochs=100, 
+          batch_size=64,
+          callbacks=my_callbacks,
+          validation_split=0.1)
+
+# 5. Evaluacija
+score = model.evaluate(X_test_n, y_test, verbose=0)
+print(f'Točnost s Early Stoppingom: {100.0*score[1]:.2f}%')
+
+
+
+
+'''
+Kako radi EarlyStopping u ovom kodu?U klasi EarlyStopping koristimo sljedeće ključne 
+argumente iz dokumentacije:monitor='val_loss': Pratimo vrijednost funkcije gubitka na 
+validacijskom skupu jer ona najbolje pokazuje generalizaciju modela.patience=5: 
+Ovo je uvjet iz tvog zadatka. Ako gubitak na validaciji ne padne ni jednom tijekom 5 
+uzastopnih epoha, algoritam se zaustavlja.restore_best_weights=True: (Dodatno) Ova opcija 
+osigurava da model na kraju učenja zadrži težine iz epohe u kojoj je imao najbolji 
+rezultat, a ne iz zadnje (koja je vjerojatno lošija zbog overfittinga).
+
+Što ćeš vidjeti u konzoli/logovima?Iako smo postavili epochs=100, mreža vjerojatno 
+neće doći do stote epohe. Čim krivulja validacijskog gubitka postane ravna ili 
+počne rasti (što ukazuje na početak pretjeranog usklađivanja), Keras će ispisati 
+poruku: "Epoch X: early stopping".
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+Što se dogada s procesom ucenja:
+1. ako se koristi jako velika ili jako mala velicina serije?
+2. ako koristite jako malu ili jako veliku vrijednost stope ucenja?
+3. ako izbacite odredene slojeve iz mreže kako biste dobili manju mrežu?
+4. ako za 50% smanjite velicinu skupa za ucenje?
+
+
+
+Zadatak 9.4.4: Analiza procesa učenja
+1. Što se događa s procesom učenja ako se koristi jako velika ili jako mala veličina 
+serije (batch size)?
+Veličina serije određuje koliko slika mreža "pogleda" prije nego što izračuna pogrešku 
+i ažurira svoje težine (parametre).
+
+Jako mala veličina serije (npr. batch_size = 1 ili 4):
+
+Prednosti: Zauzima jako malo radne memorije (GPU/RAM). Unosi "šum" u učenje što može 
+pomoći modelu da pobjegne iz lokalnih minimuma i bolje generalizira.
+
+Nedostaci: Učenje je jako sporo jer se težine ažuriraju nakon svake slike. 
+Krivulja gubitka (loss) će jako oscilirati (skakati gore-dolje) jer jedna "čudna" slika 
+može drastično promijeniti smjer učenja.
+
+Jako velika veličina serije (npr. batch_size = 1024 ili više):
+
+Prednosti: Procesiranje je brže jer se maksimalno koristi paralelizam procesora (GPU). 
+Gradijent (smjer učenja) je stabilniji i "glatkiji".
+
+Nedostaci: Zahtijeva puno memorije. Postoji opasnost da model zapne u oštrim lokalnim 
+minimumima i slabije generalizira na nove podatke (tzv. generalization gap).
+
+
+2. Što se događa ako koristite jako malu ili jako veliku stopu učenja (learning rate)?
+Stopa učenja je najvažniji hiperparametar. Ona određuje koliki "korak" radimo u smjeru u 
+kojem mislimo da je rješenje.
+
+Jako mala stopa učenja (npr. 0.0000001):
+
+Problem: Učenje će biti ekstremno sporo. Mreži će trebati tisuće epoha da postigne 
+bilo kakav napredak. Također, model može lako zapeti u prvom malom "udubljenju" 
+(lokalni minimum) i nikada ne pronaći stvarno optimalno rješenje.
+
+Jako velika stopa učenja (npr. 0.1 ili 1.0 za kompleksne mreže):
+
+Problem: Model "skače" previše. Umjesto da se polako spusti u dolinu gdje je rješenje, 
+on preleti preko nje na drugu stranu brda. Krivulja gubitka će ili divlje oscilirati ili 
+će "eksplodirati" (pogreška će postati beskonačna - NaN). Model nikada neće konvergirati 
+(smiriti se) u dobrom rješenju.
